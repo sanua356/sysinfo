@@ -1,14 +1,14 @@
 // Take a look at the license at the top of the repository in the LICENSE file.
 
-cfg_select! {
-    any(target_os = "macos", target_os = "ios") => {
+cfg_if::cfg_if! {
+    if #[cfg(any(target_os = "macos", target_os = "ios"))] {
         pub(crate) mod apple;
         pub(crate) use apple as sys;
 
         #[allow(unused_imports)]
         pub(crate) use libc::__error as libc_errno;
     }
-    any(target_os = "linux", target_os = "android") => {
+    else if #[cfg(any(target_os = "linux", target_os = "android"))] {
         pub(crate) mod linux;
         pub(crate) use linux as sys;
 
@@ -19,27 +19,27 @@ cfg_select! {
         #[allow(unused_imports)]
         pub(crate) use libc::__errno as libc_errno;
     }
-    any(target_os = "freebsd", target_os = "netbsd") => {
+    else if #[cfg(any(target_os = "freebsd", target_os = "netbsd"))] {
         pub(crate) mod bsd;
         pub(crate) use bsd as sys;
 
         #[allow(unused_imports)]
         pub(crate) use bsd::libc_errno;
     }
-    target_os = "redox" => {
+    else if #[cfg(target_os = "redox")] {
         pub(crate) mod redox;
         pub(crate) use redox as sys;
 
         #[allow(unused_imports)]
         pub(crate) use libc::__errno_location as libc_errno;
     }
-    _ => {
+    else {
         compile_error!("Invalid cfg!");
     }
 }
 
-cfg_select! {
-    feature = "disk" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "disk")] {
         pub(crate) struct DisksInner {
             pub(crate) disks: Vec<crate::Disk>,
         }
@@ -54,21 +54,21 @@ cfg_select! {
             }
         }
     }
-    _ => {}
+    else {}
 }
 
 #[cfg(feature = "network")]
 pub(crate) mod network_helper;
 
-cfg_select! {
-    feature = "user" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "user")] {
         // On iOS the apple module provides its own `UserInner`/`get_users`
         // stubs, so `unix::users` is unused there.
         #[cfg(not(target_os = "ios"))]
         pub(crate) mod users;
         pub(crate) mod groups;
     }
-    _ => {}
+    else {}
 }
 
 pub(crate) mod utils;

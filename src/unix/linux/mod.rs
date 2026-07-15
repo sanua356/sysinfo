@@ -2,8 +2,8 @@
 
 pub(crate) mod utils;
 
-cfg_select! {
-    feature = "system" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "system")] {
         pub mod cgroup;
         pub mod cpu;
         pub mod motherboard;
@@ -18,39 +18,39 @@ cfg_select! {
         pub(crate) use self::system::SystemInner;
         pub use self::system::{MINIMUM_CPU_UPDATE_INTERVAL, SUPPORTED_SIGNALS};
     }
-    _ => {}
+    else {}
 }
-cfg_select! {
-    feature = "disk" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "disk")] {
         pub mod disk;
 
         pub(crate) use self::disk::DiskInner;
         pub(crate) use crate::unix::DisksInner;
     }
-    _ => {}
+    else {}
 }
-cfg_select! {
-    feature = "component" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "component")] {
         pub mod component;
 
         pub(crate) use self::component::{ComponentInner, ComponentsInner};
     }
-    _ => {}
+    else {}
 }
-cfg_select! {
-    feature = "network" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "network")] {
         pub mod network;
 
         pub(crate) use self::network::{NetworkDataInner, NetworksInner};
     }
-    _ => {}
+    else {}
 }
-cfg_select! {
-    feature = "user" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "user")] {
         pub(crate) use crate::unix::groups::get_groups;
         pub(crate) use crate::unix::users::{get_users, UserInner};
     }
-    _ => {}
+    else {}
 }
 
 #[doc = include_str!("../../../md_doc/is_supported.md")]

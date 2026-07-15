@@ -25,8 +25,8 @@
 #[macro_use]
 mod macros;
 
-cfg_select! {
-    feature = "unknown-ci" => {
+cfg_if::cfg_if! {
+    if #[cfg(feature = "unknown-ci")] {
         // This is used in CI to check that the build for unknown targets is compiling fine.
         mod unknown;
         use crate::unknown as sys;
@@ -34,11 +34,11 @@ cfg_select! {
         #[cfg(test)]
         pub(crate) const MIN_USERS: usize = 0;
     }
-    any(
+    else if #[cfg(any(
         target_os = "macos", target_os = "ios",
         target_os = "linux", target_os = "android",
         target_os = "freebsd", target_os = "netbsd",
-        target_os = "redox") =>
+        target_os = "redox"))]
     {
         mod unix;
         use crate::unix::sys as sys;
@@ -51,7 +51,7 @@ cfg_select! {
         #[cfg(test)]
         pub(crate) const MIN_USERS: usize = 1;
     }
-    windows => {
+    else if #[cfg(windows)] {
         mod windows;
         use crate::windows as sys;
 
@@ -63,7 +63,7 @@ cfg_select! {
         #[cfg(test)]
         pub(crate) const MIN_USERS: usize = 1;
     }
-    _ => {
+    else {
         mod unknown;
         use crate::unknown as sys;
 
@@ -158,8 +158,8 @@ mod windows;
 /// let s = System::new_all();
 /// ```
 pub fn set_open_files_limit(mut _new_limit: usize) -> bool {
-    cfg_select! {
-        all(feature = "system", not(feature = "unknown-ci"), any(target_os = "linux", target_os = "android")) =>
+    cfg_if::cfg_if! {
+        if #[cfg(all(feature = "system", not(feature = "unknown-ci"), any(target_os = "linux", target_os = "android")))]
         {
             use crate::sys::system::remaining_files;
             use std::sync::atomic::Ordering;
@@ -182,7 +182,7 @@ pub fn set_open_files_limit(mut _new_limit: usize) -> bool {
 
             true
         }
-        _ => {
+        else {
             false
         }
     }

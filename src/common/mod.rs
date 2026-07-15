@@ -116,8 +116,8 @@ macro_rules! gid {
     };
 }
 
-cfg_select! {
-    all(
+cfg_if::cfg_if! {
+    if #[cfg(all(
         not(feature = "unknown-ci"),
         any(
             target_os = "freebsd",
@@ -128,11 +128,11 @@ cfg_select! {
             target_os = "ios",
             target_os = "redox",
         )
-    ) => {
+    ))] {
         uid!(libc::uid_t, std::str::FromStr);
         gid!(libc::gid_t);
     }
-    windows => {
+    else if #[cfg(windows)] {
         uid!(crate::windows::Sid);
         gid!(u32);
         // Manual implementation outside of the macro...
@@ -145,7 +145,7 @@ cfg_select! {
             }
         }
     }
-    _ => {
+    else {
         uid!(u32, std::str::FromStr);
         gid!(u32);
     }
